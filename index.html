@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checklist · Brunch Wellness</title>
+<style>
+:root{--verde:#1f4d3f;--ouro:#b5893e;--fundo:#f7f6f1;--card:#fff;--texto:#1d1d1b;--cinza:#6b6b64;--linha:#e3e1d8;--ok:#2e7d4f}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--fundo);color:var(--texto);line-height:1.4}
+header{background:var(--verde);color:#fff;padding:16px 16px 14px}
+header h1{margin:0;font-size:18px;font-weight:600}
+header p{margin:4px 0 0;font-size:13px;opacity:.85}
+.barra{height:8px;background:rgba(255,255,255,.25);border-radius:4px;margin-top:10px;overflow:hidden}
+.barra div{height:100%;background:var(--ouro);width:0;transition:width .2s}
+.resumo{font-size:13px;margin-top:6px}
+main{padding:12px 16px 40px;max-width:720px;margin:0 auto}
+.acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+button{font:inherit;border:0;border-radius:8px;padding:9px 14px;background:var(--verde);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--verde);border:1px solid var(--verde)}
+.msg{font-size:13px;color:var(--ok)}
+.msg.erro{color:#a33}
+label.filtro{font-size:13px;display:flex;align-items:center;gap:6px}
+.lista{background:var(--card);border:1px solid var(--linha);border-radius:12px;margin:12px 0;overflow:hidden}
+.item{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 14px;border-top:1px solid var(--linha);align-items:start}
+.item:first-child{border-top:0}
+.item input[type=checkbox]{width:22px;height:22px;margin-top:2px;accent-color:var(--ok)}
+.nome{font-size:14px}
+.qtd{margin-top:4px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--cinza);flex-wrap:wrap}
+.qtd input{border:1px solid var(--linha);border-radius:6px;padding:4px 6px;font-size:13px;width:190px;color:var(--texto);background:#fff}
+.feito .nome{text-decoration:line-through;color:var(--cinza)}
+.so-faltas .feito{display:none}
+.falta{background:var(--card);border:1px solid var(--linha);border-radius:12px;padding:14px;margin:12px 0}
+.falta h2{margin:0 0 4px;font-size:16px;color:var(--verde)}
+.falta .cont{font-size:13px;color:var(--cinza);margin-bottom:6px}
+.falta ul{margin:0;padding-left:18px;font-size:14px}
+.falta li{margin:3px 0}
+.vazio{font-size:14px;color:var(--ok);padding:6px 0}
+textarea{width:100%;height:180px;margin-top:10px;font:13px ui-monospace,Menlo,monospace;border:1px solid var(--linha);border-radius:8px;padding:8px;display:none}
+.nota{font-size:12px;color:var(--cinza);margin-top:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Checklist · Brunch Wellness</h1>
+  <p>Domingo · 8h às 12h · 250 convidados (quantidades são estimativas)</p>
+  <div class="barra"><div id="barra"></div></div>
+  <div class="resumo" id="resumo"></div>
+</header>
+
+<main>
+  <div class="acoes">
+    <label class="filtro"><input type="checkbox" id="so"> Mostrar só o que falta</label>
+    <button class="sec" id="reset">Limpar tudo</button>
+  </div>
+  <p class="nota">Lista única, com cada ingrediente e insumo uma vez, já somando as quantidades de todas as ilhas. Marque o que você já tem ou já comprou. O que não estiver marcado vai para a lista do que falta. As marcações são salvas na nuvem e aparecem em todos os aparelhos que abrirem este link.</p>
+
+  <div class="lista" id="lista"></div>
+
+  <div class="falta">
+    <h2>O que ainda falta</h2>
+    <div class="cont" id="contFalta"></div>
+    <div id="faltaLista"></div>
+    <div class="acoes">
+      <button id="copiar">Copiar lista</button>
+      <span class="msg" id="msg"></span>
+    </div>
+    <textarea id="area" readonly></textarea>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://bjoqnuqmwwkdsmptkukq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_jZVs3EPa-oBnMRu5YvprKw_Wlj61zOC";
+const TABELA = "checklist_itens";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const ITENS = [
+ ["Abacate (guacamole)","~15 un"],
+ ["Abacaxi (suco com hortelã)","~45 un ou ~30 L de polpa ou suco pronto"],
+ ["Açúcar (bolos, limonada e xarope do mojito)","~13 kg"],
+ ["Adoçante (hibisco gelado e café)","1 kit"],
+ ["Álcool gel","2 L"],
+ ["Amêndoas","~1 kg"],
+ ["Banana-prata (mini tortilhas de banana)","~30 un"],
+ ["Bowl descartável (bowls, granola, iogurte, salada)","300"],
+ ["Canela em pó","1 pote"],
+ ["Castanhas","~1 kg"],
+ ["Cenoura (bolo de cenoura)","~5 kg"],
+ ["Chá variado","200 sachês"],
+ ["Chocolate meio amargo","~2 kg"],
+ ["Café em pó para coar","3 kg"],
+ ["Colher de servir","9"],
+ ["Colher descartável (bowls, iogurte, salada, granola)","600"],
+ ["Copo de 200 ml (água, sucos e limonada)","1.000"],
+ ["Copo de 300 ml (coquetéis)","500"],
+ ["Copo de papel de 300 ml com tampa (café e chá)","300"],
+ ["Cream cheese","1 kg"],
+ ["Cottage","1 kg"],
+ ["Creme de leite","4 caixas"],
+ ["Cuba ou bacia para gelo das jarras","4"],
+ ["Cuba ou bandeja para as ilhas","9"],
+ ["Damasco seco","1 kg"],
+ ["Faca descartável","100"],
+ ["Farinha de trigo (quiches e bolos)","9 kg"],
+ ["Flor de hibisco seca","500 g"],
+ ["Frutas para a salada (mamão, melão, abacaxi, morango, uva)","~25 kg"],
+ ["Frutas inteiras (banana, maçã, pera)","~300 un"],
+ ["Frutas vermelhas (morango, framboesa, amora)","~3 kg"],
+ ["Garfinho descartável (bolo, quiche, omelete, tortilha)","400"],
+ ["Geleias variadas","4 potes"],
+ ["Gelo","~50 kg"],
+ ["Gengibre (água com pepino e ginger lemonade)","1,5 kg"],
+ ["Granola","~8 kg"],
+ ["Guardanapo de papel","1.000"],
+ ["Hortelã","11 maços"],
+ ["Iogurte natural","~25 kg"],
+ ["Jarra de 2 L (3 sucos com reserva e 4 coquetéis)","8"],
+ ["Jarra de 3 L (4 águas aromatizadas)","4"],
+ ["Laranja (suco ~150 kg, spritz ~6 kg, água e hibisco ~30 un)","~150 kg + ~6 kg + ~30 un"],
+ ["Leite de amêndoa","6 L"],
+ ["Leite tradicional","12 L"],
+ ["Legumes (abobrinha, pimentão, cebola, tomate)","~6 kg"],
+ ["Limão (salada, água, limonada, mojito, ginger e bolo)","~300 un"],
+ ["Lixeira","6"],
+ ["Luvas descartáveis","2 caixas"],
+ ["Manteiga (quiches e pães)","4 kg"],
+ ["Mel (salada e ginger lemonade)","2 kg"],
+ ["Nozes","~1 kg"],
+ ["Óleo (bolos)","6 L"],
+ ["Ovos (quiches, omelete e bolos)","~38 dúzias"],
+ ["Pão integral de forma, fatiado","12 pães"],
+ ["Pão multigrãos de forma, fatiado","12 pães"],
+ ["Papel toalha","10 rolos"],
+ ["Pepino","8 un"],
+ ["Peito de frango cozido e desfiado","3 kg"],
+ ["Peito de peru fatiado","3 kg"],
+ ["Pinça ou pegador (um por ilha, mais 2 reservas)","11"],
+ ["Placas de alérgenos (glúten, lactose, castanhas, amendoim, ovo)","~30"],
+ ["Presunto (quiches)","~3 kg"],
+ ["Prato descartável (quiches, tortilhas, bolo)","300"],
+ ["Queijo branco (tortilha de queijo com tomate)","2 kg"],
+ ["Queijo minas frescal","3 kg"],
+ ["Queijo para quiches","~4 kg"],
+ ["Réchaud com álcool gel (quentes)","3"],
+ ["Requeijão","1 kg"],
+ ["Ricota temperada","1,5 kg"],
+ ["Rúcula e folhas frescas","2 kg"],
+ ["Sacos de lixo","2 pacotes"],
+ ["Sal, pimenta e azeite","1 kit"],
+ ["Ervas frescas (salsinha, cebolinha, orégano)","5 maços"],
+ ["Tomate (tortilha de queijo com tomate)","4 kg"],
+ ["Tomate cereja (confit)","2 kg"],
+ ["Tônica zero","10 L"],
+ ["Toalha de mesa para as ilhas","9"],
+ ["Uva-passa","1 kg"],
+ ["Água com gás (mojito e ginger lemonade)","30 L"],
+ ["Água mineral em garrafão de 20 L (natural)","8 garrafões"]
+].sort((a,b) => a[0].localeCompare(b[0], "pt-BR"));
+
+let estado = {feito:{}, qtd:{}};
+const $ = s => document.querySelector(s);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const qtdDe = (nome, padrao) => estado.qtd[nome] !== undefined ? estado.qtd[nome] : padrao;
+
+function mostrarMsg(t, erro){
+  const m = $("#msg");
+  m.textContent = t;
+  m.className = "msg" + (erro ? " erro" : "");
+  setTimeout(() => { m.textContent = ""; m.className = "msg"; }, 4000);
+}
+
+function atualizarResumo(){
+  const total = ITENS.length;
+  const feitos = ITENS.filter(it => estado.feito[it[0]]).length;
+  const pct = total ? Math.round(feitos / total * 100) : 0;
+  $("#barra").style.width = pct + "%";
+  $("#resumo").textContent = feitos + " de " + total + " itens prontos · faltam " + (total - feitos);
+}
+
+function renderFalta(){
+  const faltam = ITENS.filter(it => !estado.feito[it[0]]);
+  $("#faltaLista").innerHTML = faltam.length
+    ? "<ul>" + faltam.map(it => "<li>" + esc(it[0]) + " — <strong>" + esc(qtdDe(it[0], it[1])) + "</strong></li>").join("") + "</ul>"
+    : '<div class="vazio">Nada faltando. Tudo marcado ✔</div>';
+  $("#contFalta").textContent = faltam.length + " itens faltando";
+}
+
+function renderTudo(){
+  $("#lista").innerHTML = ITENS.map(it => {
+    const nome = it[0];
+    const ok = !!estado.feito[nome];
+    return '<div class="item' + (ok ? ' feito' : '') + '">' +
+      '<input type="checkbox" data-id="' + esc(nome) + '"' + (ok ? ' checked' : '') + ' aria-label="Marcar ' + esc(nome) + '">' +
+      '<div><div class="nome">' + esc(nome) + '</div>' +
+      '<div class="qtd">Precisa: <input type="text" data-qtd="' + esc(nome) + '" value="' + esc(qtdDe(nome, it[1])) + '"></div>' +
+      '</div></div>';
+  }).join("");
+  renderFalta();
+  atualizarResumo();
+}
+
+// Atualiza só a linha de um item, sem refazer a lista inteira.
+// Não mexe no campo que a pessoa está digitando.
+function atualizarLinha(nome){
+  const it = ITENS.find(x => x[0] === nome);
+  if (!it) return;
+  const cb = document.querySelector('input[type=checkbox][data-id="' + CSS.escape(nome) + '"]');
+  const qt = document.querySelector('input[data-qtd="' + CSS.escape(nome) + '"]');
+  if (cb) {
+    cb.checked = !!estado.feito[nome];
+    cb.closest(".item").classList.toggle("feito", cb.checked);
+  }
+  if (qt && document.activeElement !== qt) qt.value = qtdDe(nome, it[1]);
+}
+
+async function carregar(){
+  const {data, error} = await sb.from(TABELA).select("*");
+  if (error) { mostrarMsg("Não foi possível carregar a lista. Recarregue a página.", true); console.error(error); return; }
+  estado = {feito:{}, qtd:{}};
+  data.forEach(r => {
+    estado.feito[r.item_id] = r.feito;
+    if (r.qtd !== null) estado.qtd[r.item_id] = r.qtd;
+  });
+  renderTudo();
+}
+
+function escutarMudancas(){
+  sb.channel("checklist")
+    .on("postgres_changes", {event:"*", schema:"public", table:TABELA}, p => {
+      if (p.eventType === "DELETE") {
+        const id = p.old.item_id;
+        delete estado.feito[id];
+        delete estado.qtd[id];
+        atualizarLinha(id);
+      } else {
+        const r = p.new;
+        estado.feito[r.item_id] = r.feito;
+        if (r.qtd !== null) estado.qtd[r.item_id] = r.qtd; else delete estado.qtd[r.item_id];
+        atualizarLinha(r.item_id);
+      }
+      renderFalta();
+      atualizarResumo();
+    })
+    .subscribe();
+}
+
+async function salvarItem(nome){
+  const {error} = await sb.from(TABELA).upsert({
+    item_id: nome,
+    feito: !!estado.feito[nome],
+    qtd: estado.qtd[nome] !== undefined ? estado.qtd[nome] : null,
+    atualizado_em: new Date().toISOString()
+  }, {onConflict: "item_id"});
+  if (error) { mostrarMsg("Não foi possível salvar. Verifique sua conexão.", true); console.error(error); }
+}
+
+const timersQtd = {};
+$("#lista").addEventListener("change", e => {
+  const t = e.target;
+  if (t.matches("input[type=checkbox]")) {
+    const nome = t.dataset.id;
+    estado.feito[nome] = t.checked;
+    t.closest(".item").classList.toggle("feito", t.checked);
+    renderFalta(); atualizarResumo();
+    salvarItem(nome);
+  }
+});
+
+$("#lista").addEventListener("input", e => {
+  const t = e.target;
+  if (t.matches("input[data-qtd]")) {
+    const nome = t.dataset.qtd;
+    estado.qtd[nome] = t.value;
+    renderFalta();
+    clearTimeout(timersQtd[nome]);
+    timersQtd[nome] = setTimeout(() => salvarItem(nome), 700);
+  }
+});
+
+let pendenteLimpar = false;
+$("#reset").addEventListener("click", async () => {
+  const b = $("#reset");
+  if (!pendenteLimpar) {
+    pendenteLimpar = true;
+    b.textContent = "Toque de novo para limpar";
+    setTimeout(() => { pendenteLimpar = false; b.textContent = "Limpar tudo"; }, 4000);
+    return;
+  }
+  pendenteLimpar = false;
+  b.textContent = "Limpar tudo";
+  const {error} = await sb.from(TABELA).delete().neq("item_id", "");
+  if (error) { mostrarMsg("Não foi possível limpar. Tente de novo.", true); console.error(error); return; }
+  estado = {feito:{}, qtd:{}};
+  renderTudo();
+});
+
+$("#so").addEventListener("change", () => {
+  document.body.classList.toggle("so-faltas", $("#so").checked);
+});
+
+function gerarTexto(){
+  const faltam = ITENS.filter(it => !estado.feito[it[0]]);
+  return "Lista do que falta · Brunch Wellness\n\n" +
+    faltam.map(it => "- [ ] " + it[0] + " — " + qtdDe(it[0], it[1])).join("\n") + "\n";
+}
+
+async function copiar(){
+  const txt = gerarTexto();
+  try {
+    await navigator.clipboard.writeText(txt);
+    mostrarMsg("Copiado!");
+  } catch(e) {
+    const area = $("#area");
+    area.style.display = "block";
+    area.value = txt;
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch(e2) {}
+    mostrarMsg(ok ? "Copiado!" : "Selecione o texto abaixo e copie.");
+  }
+}
+$("#copiar").addEventListener("click", copiar);
+
+renderTudo();
+carregar();
+escutarMudancas();
+</script>
+</body>
+</html>
