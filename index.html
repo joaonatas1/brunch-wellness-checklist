@@ -2,72 +2,120 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4d3f">
 <title>Checklist · Brunch Wellness</title>
 <style>
-:root{--verde:#1f4d3f;--ouro:#b5893e;--fundo:#f7f6f1;--card:#fff;--texto:#1d1d1b;--cinza:#6b6b64;--linha:#e3e1d8;--ok:#2e7d4f}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--fundo);color:var(--texto);line-height:1.4}
-header{background:var(--verde);color:#fff;padding:16px 16px 14px}
-header h1{margin:0;font-size:18px;font-weight:600}
-header p{margin:4px 0 0;font-size:13px;opacity:.85}
-.barra{height:8px;background:rgba(255,255,255,.25);border-radius:4px;margin-top:10px;overflow:hidden}
-.barra div{height:100%;background:var(--ouro);width:0;transition:width .2s}
-.resumo{font-size:13px;margin-top:6px}
-main{padding:12px 16px 40px;max-width:720px;margin:0 auto}
-.acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
-button{font:inherit;border:0;border-radius:8px;padding:9px 14px;background:var(--verde);color:#fff;cursor:pointer}
-button.sec{background:#fff;color:var(--verde);border:1px solid var(--verde)}
-.msg{font-size:13px;color:var(--ok)}
-.msg.erro{color:#a33}
-label.filtro{font-size:13px;display:flex;align-items:center;gap:6px}
-.lista{background:var(--card);border:1px solid var(--linha);border-radius:12px;margin:12px 0;overflow:hidden}
-.item{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 14px;border-top:1px solid var(--linha);align-items:start}
-.item:first-child{border-top:0}
-.item input[type=checkbox]{width:22px;height:22px;margin-top:2px;accent-color:var(--ok)}
-.nome{font-size:14px}
-.qtd{margin-top:4px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--cinza);flex-wrap:wrap}
-.qtd input{border:1px solid var(--linha);border-radius:6px;padding:4px 6px;font-size:13px;width:190px;color:var(--texto);background:#fff}
-.feito .nome{text-decoration:line-through;color:var(--cinza)}
-.so-faltas .feito{display:none}
-.falta{background:var(--card);border:1px solid var(--linha);border-radius:12px;padding:14px;margin:12px 0}
-.falta h2{margin:0 0 4px;font-size:16px;color:var(--verde)}
-.falta .cont{font-size:13px;color:var(--cinza);margin-bottom:6px}
-.falta ul{margin:0;padding-left:18px;font-size:14px}
-.falta li{margin:3px 0}
-.vazio{font-size:14px;color:var(--ok);padding:6px 0}
-textarea{width:100%;height:180px;margin-top:10px;font:13px ui-monospace,Menlo,monospace;border:1px solid var(--linha);border-radius:8px;padding:8px;display:none}
-.nota{font-size:12px;color:var(--cinza);margin-top:14px}
+:root{--verde:#1f4d3f;--ouro:#b5893e;--fundo:#f4f3ee;--card:#fff;--texto:#1d1d1b;--cinza:#6b6b64;--linha:#e4e2d9;--ok:#2e7d4f;--erro:#b03a3a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--fundo);color:var(--texto);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+button{font:inherit;cursor:pointer}
+
+/* Topo fixo com progresso */
+.topo{position:sticky;top:0;z-index:10;background:var(--verde);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px}
+.topo h1{margin:0;font-size:17px;font-weight:600}
+.topo .sub{font-size:12px;opacity:.8;margin-top:2px}
+.progresso{display:flex;align-items:center;gap:12px;margin-top:12px}
+.barra{flex:1;height:10px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden}
+.barra div{height:100%;width:0;background:var(--ouro);transition:width .3s}
+.pct{font-size:15px;font-weight:700;min-width:44px;text-align:right}
+.resumo{font-size:13px;margin-top:8px;opacity:.9}
+
+/* Busca e abas */
+.controles{padding:12px 16px 0}
+.busca input{width:100%;font-size:16px;padding:12px 14px;border:1px solid var(--linha);border-radius:12px;background:#fff;color:var(--texto)}
+.busca input:focus{outline:2px solid var(--verde);outline-offset:-1px}
+.abas{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#e7e5dc;border-radius:12px;padding:4px;margin-top:10px}
+.abas button{background:transparent;border:0;color:var(--texto);padding:10px 4px;border-radius:9px;font-size:14px;font-weight:600}
+.abas button[aria-selected="true"]{background:#fff;color:var(--verde);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.abas .n{font-weight:500;opacity:.7;margin-left:4px}
+
+/* Lista de itens */
+.lista{padding:8px 16px 0}
+.card{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--linha);border-radius:14px;padding:12px 14px;margin:8px 0;cursor:pointer;user-select:none}
+.card:active{background:#faf9f5}
+.check{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:2px solid #bdb9ab;background:#fff;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.check svg{width:16px;height:16px;opacity:0;transition:opacity .15s}
+.card.feito .check{background:var(--ok);border-color:var(--ok)}
+.card.feito .check svg{opacity:1}
+.corpo{flex:1;min-width:0}
+.nome{font-size:15px;font-weight:600;line-height:1.3}
+.card.feito .nome{text-decoration:line-through;color:var(--cinza);font-weight:500}
+.precisa{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--cinza)}
+.precisa label{white-space:nowrap}
+.precisa input{flex:1;min-width:0;font-size:16px;padding:9px 10px;border:1px solid var(--linha);border-radius:10px;background:#faf9f5;color:var(--texto)}
+.precisa input:focus{outline:2px solid var(--verde);outline-offset:-1px;background:#fff}
+.vazio{text-align:center;color:var(--cinza);padding:48px 16px;font-size:15px}
+.vazio strong{display:block;color:var(--ok);font-size:18px;margin-bottom:6px}
+
+/* Barra de ação fixa embaixo */
+.rodape{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--linha);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px}
+.principal{flex:1;background:var(--verde);color:#fff;border:0;border-radius:12px;padding:15px;font-size:15px;font-weight:600}
+.mais{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:0 18px;font-size:22px;line-height:1;color:var(--texto)}
+
+/* Aviso rápido (com desfazer) */
+.toast{position:fixed;left:16px;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:30;background:#262624;color:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.toast span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast button{background:transparent;border:0;color:#e9c98d;font-weight:700;font-size:14px;padding:6px 4px}
+.toast.erro{background:var(--erro)}
+.toast[hidden]{display:none}
+
+/* Folha de opções */
+.fundo{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40;display:flex;align-items:flex-end}
+.fundo[hidden]{display:none}
+.folha{background:#fff;width:100%;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:85vh;overflow:auto}
+.folha h3{margin:0 0 12px;font-size:16px}
+.folha .ajuda{font-size:13px;color:var(--cinza);margin:8px 0 16px}
+.btn-perigo{width:100%;background:#fff;color:var(--erro);border:1px solid var(--erro);border-radius:12px;padding:14px;font-size:15px;font-weight:600}
+.btn-sec{width:100%;background:#fff;color:var(--verde);border:1px solid var(--verde);border-radius:12px;padding:14px;font-size:15px;font-weight:600;margin-top:10px}
+textarea{width:100%;height:200px;margin-top:12px;font:13px ui-monospace,Menlo,monospace;border:1px solid var(--linha);border-radius:10px;padding:10px;display:none}
 </style>
 </head>
 <body>
-<header>
+
+<header class="topo">
   <h1>Checklist · Brunch Wellness</h1>
-  <p>Domingo · 8h às 12h · 250 convidados (quantidades são estimativas)</p>
-  <div class="barra"><div id="barra"></div></div>
+  <div class="sub">Domingo · 8h às 12h · 250 convidados · quantidades estimadas</div>
+  <div class="progresso">
+    <div class="barra"><div id="barra"></div></div>
+    <div class="pct" id="pct">0%</div>
+  </div>
   <div class="resumo" id="resumo"></div>
 </header>
 
-<main>
-  <div class="acoes">
-    <label class="filtro"><input type="checkbox" id="so"> Mostrar só o que falta</label>
-    <button class="sec" id="reset">Limpar tudo</button>
+<section class="controles">
+  <div class="busca">
+    <input type="search" id="busca" placeholder="Buscar item (ex.: limão, copo, gelo)" aria-label="Buscar item" autocomplete="off">
   </div>
-  <p class="nota">Lista única, com cada ingrediente e insumo uma vez, já somando as quantidades de todas as ilhas. Marque o que você já tem ou já comprou. O que não estiver marcado vai para a lista do que falta. As marcações são salvas na nuvem e aparecem em todos os aparelhos que abrirem este link.</p>
+  <div class="abas" role="tablist">
+    <button role="tab" data-aba="falta" aria-selected="true">Faltam<span class="n" id="nFaltam"></span></button>
+    <button role="tab" data-aba="todos" aria-selected="false">Todos<span class="n" id="nTodos"></span></button>
+    <button role="tab" data-aba="pronto" aria-selected="false">Prontos<span class="n" id="nProntos"></span></button>
+  </div>
+</section>
 
-  <div class="lista" id="lista"></div>
+<main class="lista" id="lista"></main>
 
-  <div class="falta">
-    <h2>O que ainda falta</h2>
-    <div class="cont" id="contFalta"></div>
-    <div id="faltaLista"></div>
-    <div class="acoes">
-      <button id="copiar">Copiar lista</button>
-      <span class="msg" id="msg"></span>
-    </div>
+<nav class="rodape">
+  <button class="principal" id="copiar">Copiar lista do que falta</button>
+  <button class="mais" id="abrirMais" aria-label="Mais opções">⋯</button>
+</nav>
+
+<div class="toast" id="toast" hidden>
+  <span id="toastTexto"></span>
+  <button id="toastAcao" hidden>Desfazer</button>
+</div>
+
+<div class="fundo" id="folhaFundo" hidden>
+  <div class="folha" role="dialog" aria-modal="true" aria-labelledby="tituloFolha">
+    <h3 id="tituloFolha">Mais opções</h3>
+    <button class="btn-perigo" id="limpar">Limpar tudo</button>
+    <p class="ajuda">Apaga todas as marcações e as quantidades editadas. Essa ação vale para todas as pessoas que abrirem o link.</p>
     <textarea id="area" readonly></textarea>
+    <button class="btn-sec" id="fechar">Fechar</button>
   </div>
-</main>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -159,149 +207,208 @@ const ITENS = [
  ["Água mineral em garrafão de 20 L (natural)","8 garrafões"]
 ].sort((a,b) => a[0].localeCompare(b[0], "pt-BR"));
 
+const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 let estado = {feito:{}, qtd:{}};
+let aba = "falta";
+let busca = "";
+let edicaoPendente = false;
+let timerToast = null;
+let ultimoMarcado = null;
+
 const $ = s => document.querySelector(s);
 const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const qtdDe = (nome, padrao) => estado.qtd[nome] !== undefined ? estado.qtd[nome] : padrao;
+const estaPronto = nome => !!estado.feito[nome];
 
-function mostrarMsg(t, erro){
-  const m = $("#msg");
-  m.textContent = t;
-  m.className = "msg" + (erro ? " erro" : "");
-  setTimeout(() => { m.textContent = ""; m.className = "msg"; }, 4000);
+function mostrarToast(texto, comDesfazer, erro){
+  const t = $("#toast");
+  $("#toastTexto").textContent = texto;
+  $("#toastAcao").hidden = !comDesfazer;
+  t.classList.toggle("erro", !!erro);
+  t.hidden = false;
+  clearTimeout(timerToast);
+  timerToast = setTimeout(() => { t.hidden = true; ultimoMarcado = null; }, 4500);
 }
 
-function atualizarResumo(){
+function atualizarCabecalho(){
   const total = ITENS.length;
-  const feitos = ITENS.filter(it => estado.feito[it[0]]).length;
-  const pct = total ? Math.round(feitos / total * 100) : 0;
+  const prontos = ITENS.filter(it => estaPronto(it[0])).length;
+  const faltam = total - prontos;
+  const pct = total ? Math.round(prontos / total * 100) : 0;
   $("#barra").style.width = pct + "%";
-  $("#resumo").textContent = feitos + " de " + total + " itens prontos · faltam " + (total - feitos);
+  $("#pct").textContent = pct + "%";
+  $("#resumo").textContent = prontos + " de " + total + " itens prontos · faltam " + faltam;
+  $("#nFaltam").textContent = faltam;
+  $("#nTodos").textContent = total;
+  $("#nProntos").textContent = prontos;
+  $("#copiar").textContent = "Copiar lista do que falta (" + faltam + ")";
 }
 
-function renderFalta(){
-  const faltam = ITENS.filter(it => !estado.feito[it[0]]);
-  $("#faltaLista").innerHTML = faltam.length
-    ? "<ul>" + faltam.map(it => "<li>" + esc(it[0]) + " — <strong>" + esc(qtdDe(it[0], it[1])) + "</strong></li>").join("") + "</ul>"
-    : '<div class="vazio">Nada faltando. Tudo marcado ✔</div>';
-  $("#contFalta").textContent = faltam.length + " itens faltando";
+function itensVisiveis(){
+  const termo = busca.trim().toLowerCase();
+  return ITENS.filter(it => {
+    if (aba === "falta" && estaPronto(it[0])) return false;
+    if (aba === "pronto" && !estaPronto(it[0])) return false;
+    if (termo && !it[0].toLowerCase().includes(termo)) return false;
+    return true;
+  });
 }
 
-function renderTudo(){
-  $("#lista").innerHTML = ITENS.map(it => {
-    const nome = it[0];
-    const ok = !!estado.feito[nome];
-    return '<div class="item' + (ok ? ' feito' : '') + '">' +
-      '<input type="checkbox" data-id="' + esc(nome) + '"' + (ok ? ' checked' : '') + ' aria-label="Marcar ' + esc(nome) + '">' +
-      '<div><div class="nome">' + esc(nome) + '</div>' +
-      '<div class="qtd">Precisa: <input type="text" data-qtd="' + esc(nome) + '" value="' + esc(qtdDe(nome, it[1])) + '"></div>' +
-      '</div></div>';
-  }).join("");
-  renderFalta();
-  atualizarResumo();
-}
-
-// Atualiza só a linha de um item, sem refazer a lista inteira.
-// Não mexe no campo que a pessoa está digitando.
-function atualizarLinha(nome){
-  const it = ITENS.find(x => x[0] === nome);
-  if (!it) return;
-  const cb = document.querySelector('input[type=checkbox][data-id="' + CSS.escape(nome) + '"]');
-  const qt = document.querySelector('input[data-qtd="' + CSS.escape(nome) + '"]');
-  if (cb) {
-    cb.checked = !!estado.feito[nome];
-    cb.closest(".item").classList.toggle("feito", cb.checked);
+function render(){
+  const visiveis = itensVisiveis();
+  let html;
+  if (visiveis.length === 0) {
+    if (busca.trim()) html = '<div class="vazio">Nenhum item encontrado para "' + esc(busca) + '".</div>';
+    else if (aba === "falta") html = '<div class="vazio"><strong>Tudo pronto ✔</strong>Nada faltando. Você pode conferir na aba "Prontos".</div>';
+    else if (aba === "pronto") html = '<div class="vazio">Nenhum item marcado ainda. Toque em um item para marcar.</div>';
+    else html = '<div class="vazio">Nenhum item.</div>';
+  } else {
+    html = visiveis.map(it => {
+      const nome = it[0];
+      const pronto = estaPronto(nome);
+      return '<div class="card' + (pronto ? ' feito' : '') + '" data-nome="' + esc(nome) + '" role="checkbox" aria-checked="' + pronto + '" tabindex="0">' +
+        '<div class="check">' + CHECK_SVG + '</div>' +
+        '<div class="corpo">' +
+          '<div class="nome">' + esc(nome) + '</div>' +
+          '<div class="precisa"><label for="q-' + visiveis.indexOf(it) + '">Precisa</label>' +
+          '<input id="q-' + visiveis.indexOf(it) + '" type="text" inputmode="text" data-qtd="' + esc(nome) + '" value="' + esc(qtdDe(nome, it[1])) + '"></div>' +
+        '</div></div>';
+    }).join("");
   }
-  if (qt && document.activeElement !== qt) qt.value = qtdDe(nome, it[1]);
+  $("#lista").innerHTML = html;
+  atualizarCabecalho();
+}
+
+async function salvarItem(nome){
+  const {error} = await sb.from(TABELA).upsert({
+    item_id: nome,
+    feito: estaPronto(nome),
+    qtd: estado.qtd[nome] !== undefined ? estado.qtd[nome] : null,
+    atualizado_em: new Date().toISOString()
+  }, {onConflict: "item_id"});
+  if (error) { mostrarToast("Não foi possível salvar. Verifique a conexão.", false, true); console.error(error); }
+}
+
+function alternar(nome, desfazer){
+  estado.feito[nome] = !estaPronto(nome);
+  if (estado.feito[nome] && !desfazer) {
+    ultimoMarcado = nome;
+    mostrarToast("Marcado: " + nome, true);
+  }
+  render();
+  salvarItem(nome);
 }
 
 async function carregar(){
   const {data, error} = await sb.from(TABELA).select("*");
-  if (error) { mostrarMsg("Não foi possível carregar a lista. Recarregue a página.", true); console.error(error); return; }
+  if (error) { mostrarToast("Não foi possível carregar a lista. Recarregue a página.", false, true); console.error(error); return; }
   estado = {feito:{}, qtd:{}};
   data.forEach(r => {
     estado.feito[r.item_id] = r.feito;
     if (r.qtd !== null) estado.qtd[r.item_id] = r.qtd;
   });
-  renderTudo();
+  render();
 }
 
 function escutarMudancas(){
   sb.channel("checklist")
     .on("postgres_changes", {event:"*", schema:"public", table:TABELA}, p => {
       if (p.eventType === "DELETE") {
-        const id = p.old.item_id;
-        delete estado.feito[id];
-        delete estado.qtd[id];
-        atualizarLinha(id);
+        delete estado.feito[p.old.item_id];
+        delete estado.qtd[p.old.item_id];
       } else {
         const r = p.new;
         estado.feito[r.item_id] = r.feito;
         if (r.qtd !== null) estado.qtd[r.item_id] = r.qtd; else delete estado.qtd[r.item_id];
-        atualizarLinha(r.item_id);
       }
-      renderFalta();
-      atualizarResumo();
+      // Não redesenha enquanto a pessoa está digitando em um campo de quantidade
+      const emEdicao = document.activeElement && document.activeElement.matches("#lista input");
+      if (emEdicao) edicaoPendente = true; else render();
     })
     .subscribe();
 }
 
-async function salvarItem(nome){
-  const {error} = await sb.from(TABELA).upsert({
-    item_id: nome,
-    feito: !!estado.feito[nome],
-    qtd: estado.qtd[nome] !== undefined ? estado.qtd[nome] : null,
-    atualizado_em: new Date().toISOString()
-  }, {onConflict: "item_id"});
-  if (error) { mostrarMsg("Não foi possível salvar. Verifique sua conexão.", true); console.error(error); }
-}
+// Eventos
+$("#lista").addEventListener("click", e => {
+  if (e.target.closest("input")) return;
+  const card = e.target.closest(".card");
+  if (!card) return;
+  alternar(card.dataset.nome, false);
+});
+
+$("#lista").addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  if (e.target.matches("input")) return;
+  const card = e.target.closest(".card");
+  if (!card) return;
+  e.preventDefault();
+  alternar(card.dataset.nome, false);
+});
 
 const timersQtd = {};
-$("#lista").addEventListener("change", e => {
-  const t = e.target;
-  if (t.matches("input[type=checkbox]")) {
-    const nome = t.dataset.id;
-    estado.feito[nome] = t.checked;
-    t.closest(".item").classList.toggle("feito", t.checked);
-    renderFalta(); atualizarResumo();
-    salvarItem(nome);
-  }
-});
-
 $("#lista").addEventListener("input", e => {
   const t = e.target;
-  if (t.matches("input[data-qtd]")) {
-    const nome = t.dataset.qtd;
-    estado.qtd[nome] = t.value;
-    renderFalta();
-    clearTimeout(timersQtd[nome]);
-    timersQtd[nome] = setTimeout(() => salvarItem(nome), 700);
-  }
+  if (!t.matches("input[data-qtd]")) return;
+  const nome = t.dataset.qtd;
+  estado.qtd[nome] = t.value;
+  atualizarCabecalho();
+  clearTimeout(timersQtd[nome]);
+  timersQtd[nome] = setTimeout(() => salvarItem(nome), 700);
 });
 
+$("#lista").addEventListener("focusout", e => {
+  if (!e.target.matches("input[data-qtd]")) return;
+  if (edicaoPendente) { edicaoPendente = false; setTimeout(render, 0); }
+});
+
+$("#busca").addEventListener("input", e => { busca = e.target.value; render(); });
+
+document.querySelectorAll(".abas button").forEach(b => {
+  b.addEventListener("click", () => {
+    aba = b.dataset.aba;
+    document.querySelectorAll(".abas button").forEach(x => x.setAttribute("aria-selected", x === b ? "true" : "false"));
+    render();
+  });
+});
+
+$("#toastAcao").addEventListener("click", () => {
+  if (!ultimoMarcado) return;
+  const nome = ultimoMarcado;
+  $("#toast").hidden = true;
+  ultimoMarcado = null;
+  alternar(nome, true);
+});
+
+// Folha de opções
+function abrirFolha(){ $("#folhaFundo").hidden = false; }
+function fecharFolha(){ $("#folhaFundo").hidden = true; $("#area").style.display = "none"; }
+$("#abrirMais").addEventListener("click", abrirFolha);
+$("#fechar").addEventListener("click", fecharFolha);
+$("#folhaFundo").addEventListener("click", e => { if (e.target.id === "folhaFundo") fecharFolha(); });
+
 let pendenteLimpar = false;
-$("#reset").addEventListener("click", async () => {
-  const b = $("#reset");
+$("#limpar").addEventListener("click", async () => {
+  const b = $("#limpar");
   if (!pendenteLimpar) {
     pendenteLimpar = true;
-    b.textContent = "Toque de novo para limpar";
+    b.textContent = "Toque de novo para confirmar";
     setTimeout(() => { pendenteLimpar = false; b.textContent = "Limpar tudo"; }, 4000);
     return;
   }
   pendenteLimpar = false;
   b.textContent = "Limpar tudo";
   const {error} = await sb.from(TABELA).delete().neq("item_id", "");
-  if (error) { mostrarMsg("Não foi possível limpar. Tente de novo.", true); console.error(error); return; }
+  if (error) { mostrarToast("Não foi possível limpar. Tente de novo.", false, true); console.error(error); return; }
   estado = {feito:{}, qtd:{}};
-  renderTudo();
+  fecharFolha();
+  render();
+  mostrarToast("Lista limpa.", false);
 });
 
-$("#so").addEventListener("change", () => {
-  document.body.classList.toggle("so-faltas", $("#so").checked);
-});
-
+// Copiar lista do que falta
 function gerarTexto(){
-  const faltam = ITENS.filter(it => !estado.feito[it[0]]);
+  const faltam = ITENS.filter(it => !estaPronto(it[0]));
   return "Lista do que falta · Brunch Wellness\n\n" +
     faltam.map(it => "- [ ] " + it[0] + " — " + qtdDe(it[0], it[1])).join("\n") + "\n";
 }
@@ -310,20 +417,21 @@ async function copiar(){
   const txt = gerarTexto();
   try {
     await navigator.clipboard.writeText(txt);
-    mostrarMsg("Copiado!");
+    mostrarToast("Lista copiada. Já pode colar onde quiser.", false);
   } catch(e) {
     const area = $("#area");
-    area.style.display = "block";
     area.value = txt;
+    area.style.display = "block";
+    abrirFolha();
     area.select();
     let ok = false;
     try { ok = document.execCommand("copy"); } catch(e2) {}
-    mostrarMsg(ok ? "Copiado!" : "Selecione o texto abaixo e copie.");
+    mostrarToast(ok ? "Lista copiada." : "Toque no texto da janela e copie.", false, !ok);
   }
 }
 $("#copiar").addEventListener("click", copiar);
 
-renderTudo();
+render();
 carregar();
 escutarMudancas();
 </script>
